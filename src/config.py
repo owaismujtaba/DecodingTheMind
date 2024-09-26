@@ -5,7 +5,7 @@ currentDir = os.getcwd()
 rawDataDir = Path(currentDir, 'RawData')
 dataDir = Path(currentDir, 'Data')
 
-seperator = "\\"
+seperator = "/"
 preprocessData = True
 precptionImaginationProcessing = True
 
