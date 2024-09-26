@@ -6,7 +6,9 @@ from sklearn.model_selection import train_test_split
 import src.config as config
 from src.utils import preprocess_data, get_all_processed_files, extract_features
 import pdb
+import warnings
 
+warnings.filterwarnings('ignore')
 
 class PerceptionImaginationDataProcessor:
     def __init__(self):
@@ -50,16 +52,18 @@ class PerceptionImaginationDataProcessor:
             else:
                 imaginationIndexs.append(index)
 
-        pdb.set_trace()
 
         perceptionData, imaginationData = epochs[perceptionIndexs].get_data(), epochs[imaginationIndexs].get_data()
         labels = np.concatenate(([0] * perceptionData.shape[0], [1] * imaginationData.shape[0]), axis=0)
         perceptionFeatures, imaginationFeatures = features[perceptionIndexs], features[imaginationIndexs]
         data = np.concatenate((perceptionData, imaginationData), axis=0)
         features = np.concatenate((perceptionFeatures, imaginationFeatures), axis=0)
+
+        data = np.concatenate((data, features), axis=2)
+
         print(f'\033[0;32mX: {data.shape}, Y {labels.shape}\033[0m')
         print('\033[1;34m***************** Loaded Perception/Imagination Data *********************\033[0m')
-        return data, features,  labels
+        return data,  labels
 
     @staticmethod
     def _getCode(event):
@@ -107,7 +111,6 @@ class PerceptionImaginationDataProcessor:
                 testLabels = np.concatenate((testLabels, yTest), axis=0)
                 testSizes.append(xTest.shape[0])
             
-    
         print(f'\033[0;33mSaving files to {self.destinationDir} directory\033[0m')
         np.save(Path(self.destinationDir, 'xTrain.npy'), trainData)
         np.save(Path(self.destinationDir, 'yTrain.npy'), trainLabels)
@@ -123,35 +126,7 @@ def perception_imagination_preprocessingPipeline():
     # Filtering, Averaging and Standardizing the data
     perceptionImaginationDataProcessor = PerceptionImaginationDataProcessor()
     perceptionImaginationDataProcessor.preprocess_perception_imagination_data_all_Subjects()
-    perceptionImaginationDataLoader = PerceptionImaginationData(cleaned=True)
-    xTrain, xTest = perceptionImaginationDataLoader.xTrain, perceptionImaginationDataLoader.xTest
-    yTrain, yTest = perceptionImaginationDataLoader.yTrain, perceptionImaginationDataLoader.yTest
-    
-    
-    # Extracting Statistical Features, morlet features and PSD features
-    xTrainFeatures = extractFeatures(xTrain)
-    xTestFeatures = extractFeatures(xTest)
-
-    destinationDir = Path(config.dataDir, name)
-    destinationDir = Path(destinationDir, 'Features')
-    os.makedirs(destinationDir, exist_ok=True)
-
-    np.save(Path(destinationDir, 'xTrain.npy'), xTrainFeatures)
-    np.save(Path(destinationDir, 'xTest.npy'), xTestFeatures)
-
-    print('\033[0;32mCleaned and Features Extracted for Perception and Imagination\033[0m')
-    
-    #Extracting CSP Features
-    destinationDir = Path(config.dataDir, name)
-    destinationDir = Path(destinationDir, 'CSPFeatures')
-    os.makedirs(destinationDir, exist_ok=True)
-    cspModel, xTrainFeatures = getCSPFeatures(xTrain, yTrain)
-    xTestFeatures = cspModel.transform(xTest)
-    np.save(Path(destinationDir, 'xTrain.npy'), xTrainFeatures)
-    np.save(Path(destinationDir, 'xTest.npy'), xTestFeatures)
-    
-
-    print('\033[0;32mCSP Features Extracted and Saved\033[0m')
+   
     print('\033[1;35m****Completed Perception/Imagination Preprocessing Pipeline****\033[0m')
 
 
