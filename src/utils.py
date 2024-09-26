@@ -43,12 +43,12 @@ def compute_segment_features(segment, sfreq, scales, freqBands):
     return segmentFeatures
 
 def extract_features(epochs, sfreq=config.samplingFrequency):
-    printHeader('Extracting Features')
+    printHeader('🧮 Extracting Features')
     
     segmentedData = epochs.get_data()
     nSegments, nChannels, nTimes = segmentedData.shape
     
-    print(f"{Fore.CYAN}Input shape: {Fore.YELLOW}{nSegments} segments, {nChannels} channels, {nTimes} time points{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}📊 Input shape: {Fore.YELLOW}{nSegments} segments, {nChannels} channels, {nTimes} time points{Style.RESET_ALL}")
     
     freqBands = {
         'delta': (0.5, 4),
@@ -58,12 +58,12 @@ def extract_features(epochs, sfreq=config.samplingFrequency):
         'gamma': (30, 100),
     }
     
-    print(f"{Fore.CYAN}Frequency bands: {Fore.YELLOW}{', '.join(freqBands.keys())}{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}🎵 Frequency bands: {Fore.YELLOW}{', '.join(freqBands.keys())}{Style.RESET_ALL}")
     
     frequencies = np.linspace(1, sfreq / 2, 50)
     scales = pywt.scale2frequency('cmor1.5-1.0', frequencies) * sfreq
     
-    print(f"{Fore.CYAN}Computing features using {Fore.YELLOW}{config.numJobs} processes{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}🖥️ Computing features using {Fore.YELLOW}{config.numJobs} processes{Style.RESET_ALL}")
     
     with mp.Pool(processes=config.numJobs) as pool:
         results = pool.starmap(
@@ -73,7 +73,7 @@ def extract_features(epochs, sfreq=config.samplingFrequency):
     
     features = np.array(results)
     
-    print(f"{Fore.CYAN}Features shape: {Fore.YELLOW}{features.shape}{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}📈 Features shape: {Fore.YELLOW}{features.shape}{Style.RESET_ALL}")
     
     return features
 
@@ -87,45 +87,45 @@ def extract_features(epochs, sfreq=config.samplingFrequency):
 
 def printHeader(message):
     print("\n" + "="*50)
-    print(f'\033[1m{Fore.BLACK}{message}{Style.RESET_ALL}\033[0m]')
+    print(f'\033[1m{Fore.BLACK}🚀 {message}{Style.RESET_ALL}\033[0m]')
     print("="*50)
 
 def printFooter(message):
     print("\n" + "="*50)
-    print(f'\033[1m{Fore.GREEN}{message}{Style.RESET_ALL}\033[0m]')
+    print(f'\033[1m{Fore.GREEN}✅ {message}{Style.RESET_ALL}\033[0m]')
     print("="*50)
 
 def preprocess_data(mneData):
     printHeader("Preprocessing the data")
     data = mneData.copy()
     
-    print(f"{Fore.CYAN}1. {Style.BRIGHT}Applying notch filter{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}1. {Style.BRIGHT}🔇 Applying notch filter{Style.RESET_ALL}")
     data.notch_filter([50, 100])
     
-    print(f"{Fore.CYAN}2. {Style.BRIGHT}Applying bandpass filter{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}2. {Style.BRIGHT}🎛️ Applying bandpass filter{Style.RESET_ALL}")
     data.filter(l_freq=0.5, h_freq=150)
     
-    print(f"{Fore.CYAN}3. {Style.BRIGHT}Setting EEG reference{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}3. {Style.BRIGHT}🔌 Setting EEG reference{Style.RESET_ALL}")
     data.set_eeg_reference("average", projection=True)
     
-    print(f"{Fore.CYAN}4. {Style.BRIGHT}Performing ICA{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}4. {Style.BRIGHT}🧠 Performing ICA{Style.RESET_ALL}")
     ica = mne.preprocessing.ICA(
         n_components=20, 
         random_state=97,
         max_iter='auto'
     )
 
-    print(f"{Fore.CYAN}5. {Style.BRIGHT}Fitting ICA{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}5. {Style.BRIGHT}🔧 Fitting ICA{Style.RESET_ALL}")
     ica.fit(data)
     
-    print(f"{Fore.CYAN}6. {Style.BRIGHT}Applying ICA{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}6. {Style.BRIGHT}🎭 Applying ICA{Style.RESET_ALL}")
     ica.apply(data)
 
     printFooter("Data preprocessing completed")
     return data
 
 def get_all_FIF_files_from_folder(directory):
-    printHeader(f"Searching for .fif files in: {directory}")
+    printHeader(f"🔍 Searching for .fif files in: {directory}")
     fifFiles = []
     for root, dirs, files in os.walk(directory):
         for file in files:
@@ -136,7 +136,7 @@ def get_all_FIF_files_from_folder(directory):
     return fifFiles
 
 def get_dir_from_folder(folderPath):
-    printHeader(f"Getting directories from: {folderPath}")
+    printHeader(f"📂 Getting directories from: {folderPath}")
     entries = os.listdir(folderPath)
     directories = [entry for entry in entries if os.path.isdir(os.path.join(folderPath, entry))]
     directoriesWithPaths = [Path(folderPath, folder) for folder in directories]
@@ -144,7 +144,7 @@ def get_dir_from_folder(folderPath):
     return directories, directoriesWithPaths
 
 def get_all_processed_files(folderPath=config.rawDataDir):
-    printHeader(f"Collecting all preprocessed files from: {folderPath}")
+    printHeader(f"📊 Collecting all preprocessed files from: {folderPath}")
     allFilePaths = []
     _, subjectFolders = get_dir_from_folder(folderPath)
     for subject in subjectFolders:
