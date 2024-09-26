@@ -33,18 +33,33 @@ class PerceptionImaginationDataProcessor:
         perceptionImaginationEvents = [[timing, 0, code] for timing, code in zip(eventTimings, codes)]
         perceptionImaginationEventIds = {'Perception': 1, 'Imagination': 2}
         
-        epochs = mne.Epochs(data, perceptionImaginationEvents, event_id=perceptionImaginationEventIds, tmin=config.tmin, tmax=config.tmax, preload=True, verbose=False)
-        perceptionData, imaginationData = epochs['Perception'].get_data(), epochs['Imagination'].get_data()
-        features = extractFeatures(epochs)
+        epochs = mne.Epochs(
+            data, perceptionImaginationEvents, 
+            event_id=perceptionImaginationEventIds, 
+            tmin=config.tmin, tmax=config.tmax, 
+            preload=True, verbose=False
+        )
+        
+        #features = extractFeatures(epochs)
+        perceptionIndexs = []
+        imaginationIndexs = []
+        for index in range(epochs.events.shape[0]):
+            event = epochs.events[index]
+            if event[2] == 1:
+                perceptionIndexs.append(index)
+            else:
+                imaginationIndexs.append(index)
+
         pdb.set_trace()
-        
-        perceptionData, imaginationData = perceptionData[:, :, 230:], imaginationData[:, :, 230:]
-        labels = np.concatenate(([0] * len(perceptionData), [1] * len(imaginationData)), axis=0)
-        
+
+        perceptionData, imaginationData = epochs[perceptionIndexs].get_data(), epochs[imaginationIndexs].get_data()
+        labels = np.concatenate(([0] * perceptionData.shape[0], [1] * imaginationData.shape[0]), axis=0)
+        perceptionFeatures, imaginationFeatures = features[perceptionIndexs], features[imaginationIndexs]
         data = np.concatenate((perceptionData, imaginationData), axis=0)
+        features = np.concatenate((perceptionFeatures, imaginationFeatures), axis=0)
         print(f'\033[0;32mX: {data.shape}, Y {labels.shape}\033[0m')
         print('\033[1;34m***************** Loaded Perception/Imagination Data *********************\033[0m')
-        return data, labels
+        return data, features,  labels
 
     @staticmethod
     def _getCode(event):

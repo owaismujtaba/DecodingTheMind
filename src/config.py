@@ -13,4 +13,4 @@ precptionImaginationProcessing = True
 tmin=-0.5
 tmax=1.0
 samplingFrequency = 1000
-numJobs=1
+numJobs=20
