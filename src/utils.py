@@ -15,7 +15,7 @@ init(autoreset=True)
 
 
 
-def computeSegmentFeatures(segment, sfreq, scales, freqBands):
+def compute_segment_features(segment, sfreq, scales, freqBands):
     nChannels = segment.shape[0]
     
     means = np.mean(segment, axis=1)
@@ -42,7 +42,7 @@ def computeSegmentFeatures(segment, sfreq, scales, freqBands):
 
     return segmentFeatures
 
-def extractFeatures(epochs, sfreq=config.samplingFrequency):
+def extract_features(epochs, sfreq=config.samplingFrequency):
     printHeader('Extracting Features')
     
     segmentedData = epochs.get_data()
@@ -67,7 +67,7 @@ def extractFeatures(epochs, sfreq=config.samplingFrequency):
     
     with mp.Pool(processes=config.numJobs) as pool:
         results = pool.starmap(
-            computeSegmentFeatures, 
+            compute_segment_features, 
             [(segmentedData[i], sfreq, scales, freqBands) for i in range(nSegments)]
         )
     
@@ -95,7 +95,7 @@ def printFooter(message):
     print(f'\033[1m{Fore.GREEN}{message}{Style.RESET_ALL}\033[0m]')
     print("="*50)
 
-def cleanData(mneData):
+def preprocess_data(mneData):
     printHeader("Preprocessing the data")
     data = mneData.copy()
     
@@ -124,7 +124,7 @@ def cleanData(mneData):
     printFooter("Data preprocessing completed")
     return data
 
-def getAllFifFilesFromFolder(directory):
+def get_all_FIF_files_from_folder(directory):
     printHeader(f"Searching for .fif files in: {directory}")
     fifFiles = []
     for root, dirs, files in os.walk(directory):
@@ -135,7 +135,7 @@ def getAllFifFilesFromFolder(directory):
     printFooter(f"Found {len(fifFiles)} .fif files")
     return fifFiles
 
-def getDirFromFolder(folderPath):
+def get_dir_from_folder(folderPath):
     printHeader(f"Getting directories from: {folderPath}")
     entries = os.listdir(folderPath)
     directories = [entry for entry in entries if os.path.isdir(os.path.join(folderPath, entry))]
@@ -143,15 +143,15 @@ def getDirFromFolder(folderPath):
     printFooter(f"Found {len(directories)} directories")
     return directories, directoriesWithPaths
 
-def getAllPreprocessedFiles(folderPath=config.rawDataDir):
+def get_all_processed_files(folderPath=config.rawDataDir):
     printHeader(f"Collecting all preprocessed files from: {folderPath}")
     allFilePaths = []
-    _, subjectFolders = getDirFromFolder(folderPath)
+    _, subjectFolders = get_dir_from_folder(folderPath)
     for subject in subjectFolders:
-        _, sessionFolders = getDirFromFolder(subject)
+        _, sessionFolders = get_dir_from_folder(subject)
         for session in sessionFolders:
             dirPath = Path(session, 'eeg')
-            files = getAllFifFilesFromFolder(dirPath)
+            files = get_all_FIF_files_from_folder(dirPath)
             for file in files:
                 allFilePaths.append(file)
                 

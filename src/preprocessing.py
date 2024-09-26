@@ -4,7 +4,7 @@ from pathlib import Path
 import mne
 from sklearn.model_selection import train_test_split
 import src.config as config
-from src.utils import cleanData, getAllPreprocessedFiles, extractFeatures
+from src.utils import preprocess_data, get_all_processed_files, extract_features
 import pdb
 
 
@@ -13,7 +13,7 @@ class PerceptionImaginationDataProcessor:
         self.name = 'PerceptionImagination'
         self.destinationDir = Path(config.dataDir, self.name)  
 
-    def getPerceptionImaginationDataOfSubject(self, filepath):
+    def get_perception_imagination_data_subject(self, filepath):
         print('\033[1;34m***************** Loading Perception/Imagination Data *********************\033[0m')
         print(f'\033[0;36mFile: {filepath}\033[0m')
         data = mne.io.read_raw_fif(filepath, verbose=False, preload=True)  
@@ -40,7 +40,7 @@ class PerceptionImaginationDataProcessor:
             preload=True, verbose=False
         )
         
-        #features = extractFeatures(epochs)
+        features = extract_features(epochs)
         perceptionIndexs = []
         imaginationIndexs = []
         for index in range(epochs.events.shape[0]):
@@ -72,11 +72,11 @@ class PerceptionImaginationDataProcessor:
 
 
 
-    def preprocessPerceptionImaginationDataAllSubjects(self):
+    def preprocess_perception_imagination_data_all_Subjects(self):
         print('\033[1;35m****Perception/Imagination Data Preprocessing****\033[0m')
         #self.destinationDir = Path(self.destinationDir, "Cleaned")
         os.makedirs(self.destinationDir, exist_ok=True)
-        filepaths = getAllPreprocessedFiles()
+        filepaths = get_all_processed_files()
         subjectIds = []
         sessionIds = []
         trainData = None
@@ -90,7 +90,7 @@ class PerceptionImaginationDataProcessor:
         for index in range(len(filepaths)):
             subjectIds.append(filepaths[index].split(config.seperator)[-4])
             sessionIds.append(filepaths[index].split(config.seperator)[-3])
-            X, y = self.getPerceptionImaginationDataOfSubject(filepaths[index])
+            X, y = self.get_perception_imagination_data_subject(filepaths[index])
             xTrain, xTest, yTrain, yTest = train_test_split(X, y, test_size=0.2, random_state=42)
 
             
@@ -117,12 +117,12 @@ class PerceptionImaginationDataProcessor:
         np.save(Path(self.destinationDir, 'SessionIds.npy'), sessionIds)
         np.save(Path(self.destinationDir, 'TestSizes.npy'), testSizes)
 
-def perceptionImaginationPreProcessingPipeline():
+def perception_imagination_preprocessingPipeline():
     name = 'PerceptionImagination'
     print('\033[1;35m****Starting Perception/Imagination Preprocessing Pipeline****\033[0m')
     # Filtering, Averaging and Standardizing the data
     perceptionImaginationDataProcessor = PerceptionImaginationDataProcessor()
-    perceptionImaginationDataProcessor.preprocessPerceptionImaginationDataAllSubjects()
+    perceptionImaginationDataProcessor.preprocess_perception_imagination_data_all_Subjects()
     perceptionImaginationDataLoader = PerceptionImaginationData(cleaned=True)
     xTrain, xTest = perceptionImaginationDataLoader.xTrain, perceptionImaginationDataLoader.xTest
     yTrain, yTest = perceptionImaginationDataLoader.yTrain, perceptionImaginationDataLoader.yTest
