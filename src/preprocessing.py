@@ -123,7 +123,6 @@ class PerceptionImaginationDataProcessor:
 def perception_imagination_preprocessingPipeline():
     name = 'PerceptionImagination'
     print('\033[1;35m****Starting Perception/Imagination Preprocessing Pipeline****\033[0m')
-    # Filtering, Averaging and Standardizing the data
     perceptionImaginationDataProcessor = PerceptionImaginationDataProcessor()
     perceptionImaginationDataProcessor.preprocess_perception_imagination_data_all_Subjects()
    

@@ -83,8 +83,6 @@ def extract_features(epochs, sfreq=config.samplingFrequency):
 
 
 
-
-
 def printHeader(message):
     print("\n" + "="*50)
     print(f'\033[1m{Fore.BLACK}🚀 {message}{Style.RESET_ALL}\033[0m]')

@@ -18,7 +18,7 @@ from tensorflow.keras.constraints import max_norm
 from tensorflow.keras.activations import swish
 
 import src.config as config
-from src.utils import saveTensorFlowModel
+from src.utils import save_model
 
 from colorama import Fore, Style
 import emoji
@@ -29,7 +29,7 @@ def print_with_icon(message, icon):
 
 
 class SegmentedSignalNet:
-    def __init__(self, numClasses, inputShape=(128, 128, 1), numAdditionalFeatures=59):
+    def __init__(self, numClasses, inputShape=(124, 1000, 1), numAdditionalFeatures=(124,59, 1)):
         """
         Initializes the model architecture.
 
@@ -52,11 +52,11 @@ class SegmentedSignalNet:
         inputMain = Input(shape=self.inputShape)
 
         # Input for the last 59 features
-        morletFeatures = Input(shape=(self.numAdditionalFeatures,))
+        morletFeatures = Input(shape=self.numAdditionalFeatures)
 
         # Block 1 (Convolutional and pooling layers for main data)
-        block1 = Conv2D(64, kernel_size=(8, 8), activation='relu', padding='same')(inputMain)
-        block1 = Conv2D(64, kernel_size=(4, 4), activation='relu', padding='same')(block1)
+        block1 = Conv2D(64, kernel_size=(3), activation='relu', padding='same')(inputMain)
+        block1 = Conv2D(64, kernel_size=(5), activation='relu', padding='same')(block1)
         block1 = DepthwiseConv2D(kernel_size=(12, 4), activation='relu', padding='same')(block1)
         block1 = BatchNormalization()(block1)
         block1 = AveragePooling2D(pool_size=(4, 4))(block1)
@@ -65,23 +65,19 @@ class SegmentedSignalNet:
         block1 = AveragePooling2D(pool_size=(8, 8))(block1)
         block1 = Flatten()(block1)
 
-        # Dense 2: Send Block 1 output to the first dense layer
         dense2 = Dense(1024, activation='relu')(block1)
 
-        # Dense 1: Send the last 59 features to another dense layer
-        dense1 = Dense(1024, activation='relu')(morletFeatures)
+        morletFlattened = Flatten()(morletFeatures)
 
-        # Concatenate the two dense outputs
+        dense1 = Dense(1024, activation='relu')(morletFlattened)
+
         concatenated = Concatenate()([dense1, dense2])
 
         output = Dense(self.numClasses, activation='softmax')(concatenated)
 
-        # Define and compile the model
         model = Model(inputs=[inputMain, morletFeatures], outputs=output)
-        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
+        
         return model
-
 
 
 
@@ -273,7 +269,7 @@ class XGBoostModel:
                     self.bestModelName = model
         os.makedirs(self.destinationDir, exist_ok=True)
         modelNameWithPath = Path(self.destinationDir, f"{self.name}.pkl")
-        saveTensorFlowModel(model, modelNameWithPath, "pickle")
+        save_model(model, modelNameWithPath, "pickle")
         bestReport = self.report
         bestReport = pd.DataFrame(bestReport).T
         bestReport.to_csv(Path(self.destinationDir, f'{self.name}.csv'))
@@ -321,7 +317,7 @@ class SVCModel:
                     self.bestModelName = modelName
         os.makedirs(self.destinationDir, exist_ok=True)
         modelNameWithPath = Path(self.destinationDir, f"{self.name}.pkl")
-        saveTensorFlowModel(model, modelNameWithPath, "pickle")
+        save_model(model, modelNameWithPath, "pickle")
         bestReport = self.report
         bestReport = pd.DataFrame(bestReport).T
         bestReport.to_csv(Path(self.destinationDir, f'{self.name}.csv'))
@@ -379,7 +375,7 @@ class RandomForestModel:
                 
         os.makedirs(self.destinationDir, exist_ok=True)
         modelNameWithPath = Path(self.destinationDir, f"{self.name}.pkl")
-        saveTensorFlowModel(model, modelNameWithPath, "pickle")
+        save_model(model, modelNameWithPath, "pickle")
 
         bestReport = self.report
         bestReport = pd.DataFrame(bestReport).T
